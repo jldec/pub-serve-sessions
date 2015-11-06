@@ -60,7 +60,7 @@ module.exports = function serveSessions(server) {
 
     // store must live in sessionOpts.store for expressSession to use it
     var store = self.store = sessionOpts.store = new RedisStore(
-      u.merge({}, redisOpts,
+      u.assign({}, redisOpts,
         { host: process.env.RCH || 'localhost',
           port: process.env.RCP || 6379,
           pass: process.env.RCA || '' } ));
