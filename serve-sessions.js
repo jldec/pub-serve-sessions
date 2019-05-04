@@ -15,14 +15,16 @@ module.exports = function serveSessions(server) {
   var app         = server.app;
   var opts        = server.opts;
   var log         = opts.log;
-  var sessionOpts = opts.session || {};
   var redisOpts   = opts.redis; // may be undefined
 
-  // default opts values
-  sessionOpts.name              = sessionOpts.name || 'sid';
-  sessionOpts.resave            = sessionOpts.resave || false;
-  sessionOpts.saveUninitialized = sessionOpts.saveUninitialized || false;
-  sessionOpts.secret            = process.env.SSC || u.str(Math.random()).slice(2);
+  // default opts values allow override from opts.session
+  var sessionOpts = u.assign( {
+    name: 'sid',
+    resave: true,
+    saveUninitialized: true,
+    rolling: true,
+    secret: process.env.SSC || u.str(Math.random()).slice(2),
+    cookie: { secure:opts.production, maxAge:60*60*1000 } }, opts.session);
 
   // attach authz api to server (in case we move to non-session-based identity)
   server.isAuthorized = isAuthorized;
