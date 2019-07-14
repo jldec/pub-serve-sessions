@@ -1,12 +1,12 @@
 {
   "name": "pub-serve-sessions",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "express session module for pub-server and pub-gatekeeper",
   "main": "serve-sessions.js",
   "dependencies": {
     "connect-redis": "^3.4.1",
-    "express-session": "^1.16.1",
-    "pub-util": "^3.0.7"
+    "express-session": "^1.16.2",
+    "pub-util": "^3.0.8"
   },
   "devDependencies": {},
   "files": [
