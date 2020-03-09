@@ -1,7 +1,7 @@
 /**
  * pub-server serve-sessions.js
  *
- * copyright 2015, Jurgen Leschner - github.com/jldec - MIT license
+ * copyright 2015, Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');
@@ -19,11 +19,11 @@ module.exports = function serveSessions(server) {
 
   // default opts values allow override from opts.session
   var sessionOpts = u.assign( {
-    name: 'sid',
-    resave: true,
+    name: 'pss',
+    resave: false,
     saveUninitialized: true,
     rolling: true,
-    secret: process.env.SSC || u.str(Math.random()).slice(2),
+    secret: process.env.SSC,
     cookie: { secure:opts.production, maxAge:60*60*1000 } }, opts.session);
 
   // attach authz api to server (in case we move to non-session-based identity)
@@ -57,20 +57,22 @@ module.exports = function serveSessions(server) {
     // allow true or 1 but coerce opts to {} to use defaults
     if (typeof redisOpts !== 'object') { redisOpts = {}; }
 
+    var redisLib = require('redis');
+
+    var redis = self.redis = redisLib.createClient(
+      u.assign({}, redisOpts,
+        { host: redisOpts.host || process.env.RCH || 'localhost',
+          port: redisOpts.port || process.env.RCP || 6379,
+          auth_pass: process.env.RCA || '' } ));
+
+    redis.on('error', function(err) { log(err); });
+    server.on('shutdown', function() { redis.end(); });
+
     // https://github.com/tj/connect-redis
     var RedisStore = require('connect-redis')(expressSession);
 
     // store must live in sessionOpts.store for expressSession to use it
-    var store = self.store = sessionOpts.store = new RedisStore(
-      u.assign({}, redisOpts,
-        { host: process.env.RCH || 'localhost',
-          port: process.env.RCP || 6379,
-          pass: process.env.RCA || '' } ));
-
-    var redis = self.redis = store.client;
-
-    redis.on('error', function(err) { log(err); });
-    server.on('shutdown', function() { redis.end(); });
+    self.store = sessionOpts.store = new RedisStore( { client:redis, prefix:redisOpts._sess || 'pub-sess:' } );
 
     // push system log into redis
     if (redisOpts._log) {
@@ -78,6 +80,7 @@ module.exports = function serveSessions(server) {
       log.logger.on('error', function(e) { redisLog(e.stack || e); });
     }
 
+    // TODO: use redis stream instead of list
     function redisLog(s) {
       redis.lpush(redisOpts._log, u.date().format('yyyy-mm-dd HH:MM:ss:l ') + s)
     }
@@ -98,9 +101,9 @@ module.exports = function serveSessions(server) {
     app.use('/admin', function(req, res, next) { authorizeRoute('ADMIN', req, res, next) });
     app.use('/pub',   function(req, res, next) { authorizeRoute('EDIT',  req, res, next) });
 
+    app.get('/server/logout', logout);
     app.get('/admin/log', systemLog);
     app.get('/admin/opts', showopts);
-    app.get('/admin/logout', logout);
   }
 
   //--//--//--//--//--//--//--//--//--//--//
