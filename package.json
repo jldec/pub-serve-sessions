@@ -1,6 +1,6 @@
 {
   "name": "pub-serve-sessions",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "express session module for pub-server and pub-gatekeeper",
   "main": "serve-sessions.js",
   "dependencies": {

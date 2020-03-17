@@ -23,7 +23,7 @@ module.exports = function serveSessions(server) {
     resave: false,
     saveUninitialized: true,
     rolling: true,
-    secret: process.env.SSC,
+    secret: process.env.SSC || (!redisOpts && u.str(Math.random()).slice(2)),
     cookie: { secure:opts.production, maxAge:60*60*1000 } }, opts.session);
 
   // attach authz api to server (in case we move to non-session-based identity)

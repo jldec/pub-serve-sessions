@@ -10,7 +10,7 @@ This package is included with pub-server
 
 ### Usage
 
-Session options may be maintained in `opts.session` in `pub-config`. For details of available options see [express-session](https://github.com/expressjs/session#options). Default values are listed below; a value for `session.secret` is required.
+Session options may be maintained in `opts.session` in `pub-config`. For details of available options see [express-session](https://github.com/expressjs/session#options). Default values are listed below; a value for `session.secret` (or `process.env.SSC`) is required when sessions are persisted in redis.
 
 ```js
 opts.session =
@@ -18,7 +18,7 @@ opts.session =
     resave: false,
     saveUninitialized: true,
     rolling: true,
-    secret: process.env.SSC, // required
+    secret: process.env.SSC || (!resisOpts && u.str(Math.random()).slice(2)),
     cookie: { secure:opts.production, maxAge:60*60*1000 } }
 ```
 
