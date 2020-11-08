@@ -147,9 +147,8 @@ module.exports = function serveSessions(server) {
   function authorizeRoute(acl, req, res, next) {
     if (isAuthorized(acl, req.user)) return next();
     if (server.login) return server.login(req, res);
-    var err = new Error(req.originalUrl);
-    err.status = 404; // pretend it was not found
-    throw err;
+    log('Oops, unauthorized page %s, missing server.login', req.path);
+    res.status(404).end();
   }
 
   // low-level authz api - returns true if user matches or belongs to acl
