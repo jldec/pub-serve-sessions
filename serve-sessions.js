@@ -1,7 +1,7 @@
 /**
  * pub-server serve-sessions.js
  *
- * copyright 2015, Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2022, Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');
