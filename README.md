@@ -37,7 +37,12 @@ To configure redis using environment variables:
 export RCH=localhost # host: default = localhost, can also be configured via opts.redis.host
 export RCP=6379      # port: default = 6379, can also be configured via opts.redis.port
 export RCA=xxx       # auth_pass: default blank, can only be configured via environment
+export RCS=1         # use rediss if set - default = unset, can also configure via opts.rediss
 ```
+
+> [!NOTE]
+> This package uses node-redis [v3.1.2](https://github.com/redis/node-redis/blob/master/CHANGELOG.md#v312) with callbacks.
+> Support for rediss was added in v2.0.0 of this package. See [url option](https://github.com/redis/node-redis/tree/v3.1.2?tab=readme-ov-file#options-object-properties)
 
 ### System logs
 

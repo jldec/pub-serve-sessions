@@ -1,7 +1,7 @@
 /**
  * pub-server serve-sessions.js
  *
- * Copyright (c) 2015-2022, Jürgen Leschner - github.com/jldec - MIT license
+ * Copyright (c) 2015-2024 Jürgen Leschner - github.com/jldec - MIT license
 **/
 
 var u = require('pub-util');
@@ -60,15 +60,23 @@ module.exports = function serveSessions(server) {
   if (redisOpts) {
 
     // allow true or 1 but coerce opts to {} to use defaults
-    if (typeof redisOpts !== 'object') { redisOpts = {}; }
+    let redisOptions = redisOpts;
+    if (typeof redisOptions !== 'object') { redisOptions = {}; }
+
+    redisOptions.url = `redis${
+        redisOptions.rediss || process.env.RCS ? 's' : ''
+      }://default:${process.env.RCA || ''}@${
+        redisOptions.host || process.env.RCH || 'localhost'
+      }:${redisOptions.port || process.env.RCP || '6379'}`;
+
+    delete redisOptions.host;
+    delete redisOptions.port;
+    delete redisOptions.rediss;
+    delete redisOptions.auth_pass; // ignored - must use env var
+    delete redisOptions.password;  // ignored - must use env var
 
     var redisLib = require('redis');
-
-    var redis = self.redis = redisLib.createClient(
-      u.assign({}, redisOpts,
-        { host: redisOpts.host || process.env.RCH || 'localhost',
-          port: redisOpts.port || process.env.RCP || 6379,
-          auth_pass: process.env.RCA || '' } ));
+    var redis = self.redis = redisLib.createClient(redisOptions);
 
     redis.on('error', function(err) { log(err); });
     server.on('shutdown', function() { redis.end(); });
@@ -77,17 +85,19 @@ module.exports = function serveSessions(server) {
     var RedisStore = require('connect-redis')(expressSession);
 
     // store must live in sessionOpts.store for expressSession to use it
-    self.store = sessionOpts.store = new RedisStore( { client:redis, prefix:redisOpts._sess || 'pub-sess:' } );
+    self.store = sessionOpts.store = new RedisStore( { client:redis, prefix:redisOptions._sess || 'pub-sess:' } );
 
     // push system log into redis
-    if (redisOpts._log) {
+    if (redisOptions._log) {
       log.logger.on('log', redisLog);
       log.logger.on('error', function(e) { redisLog(e.stack || e); });
     }
 
+    log(`redis${redisOptions.rediss || process.env.RCS ? 's' : ''}`, redisOptions.host || process.env.RCH || 'localhost');
+
     // TODO: use redis stream instead of list
     function redisLog(s) {
-      redis.lpush(redisOpts._log, u.date().format('yyyy-mm-dd HH:MM:ss:l ') + s)
+      redis.lpush(redisOptions._log, u.date().format('yyyy-mm-dd HH:MM:ss:l ') + s)
     }
   }
 
