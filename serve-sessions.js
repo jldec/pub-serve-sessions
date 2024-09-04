@@ -60,8 +60,8 @@ module.exports = function serveSessions(server) {
   if (redisOpts) {
 
     // allow true or 1 but coerce opts to {} to use defaults
-    let redisOptions = redisOpts;
-    if (typeof redisOptions !== 'object') { redisOptions = {}; }
+    // NOTE: same logic in src-redis/pub-src-redis.js
+    let redisOptions = u.assign({}, redisOpts);
 
     redisOptions.url = `redis${
         redisOptions.rediss || process.env.RCS ? 's' : ''
